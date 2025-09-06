@@ -60,8 +60,16 @@ public:
     void insert(string word)//abdelmaseeh
 
     {
-        // TODO: Implement this function
-    }
+      TrieNode* node = root;
+        for (char c : word) {
+            int index = c - 'a'; 
+            if (node->children[index] == nullptr) {
+                node->children[index] = new TrieNode();
+            }
+            node = node->children[index];
+        }
+        node->isEndOfWord = true;   
+     }
 
     // Search for a word in the Trie
     // Input: word to search for (string)
