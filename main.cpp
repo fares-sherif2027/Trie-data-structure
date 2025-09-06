@@ -83,8 +83,23 @@ public:
     bool startsWith(string prefix)//ahmed
 
     {
+
+        TrieNode *current = root;
+        for(char node : prefix)
+        {
+            int counter = node -'a'; // gives the index of char.
+            if(current->children[counter] == nullptr)
+            {
+                return false;
+            }
+            else
+            {
+                current = current->children[counter];
+            }
+
+        }
         // TODO: Implement this function
-        return false; // placeholder
+        return true; // placeholder
     }
 
     // Get all words that start with the given prefix
