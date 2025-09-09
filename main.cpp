@@ -113,6 +113,7 @@ public:
             }
         }
     }
+ 
     string longest() const {
     string path, best;
     dfsLongest(root, path, best);
@@ -441,6 +442,7 @@ int main()
     cout << "Search after remove 'tested': " << (foundTested2 ? "FOUND" : "NOT FOUND") << " (expected: NOT FOUND)" << endl;
 
     cout << "\n=== ALL TESTS COMPLETED ===" << endl;
-
+  Trie t;
+  cout << "longest: " << t.longest() << endl;
     return 0;
 }
