@@ -7,7 +7,7 @@ using namespace std;
 class TrieNode
 {
 public:
-    // Each node has up to 26 children (for each letter)
+    // Each node has up to 128 children (for all ASCII)
     TrieNode *children[26];
 
     // Marks if this node completes a word
@@ -29,18 +29,61 @@ class Trie
 {
 private:
     TrieNode *root;
+    /*count->mohammed
+    longest->abdelmaseeh
+    remove->ahmed-fares
+    spell ->jana
+    uppercase->jana
+    */
 
     // Helper function to find all words from a node
     // Input: current node, current word formed so far, results vector to store words
     // Output: none (modifies results vector by reference)
     // Purpose: Recursively find all complete words starting from the given node
+    bool removeword(TrieNode *node, string word, int depth)
+    {
+        if (!node)
+            return false;
+        if (depth == word.size())
+        {
+            if (!node->isEndOfWord)
+                return false; // passed over all words and didn't find word end so false
 
-    void findAllWords(TrieNode *node, string currentWord, vector<string> &results)//mohammad
+            node->isEndOfWord = false; // this removes the end flag to disappear the funtion if it has other branches it won't delte the common letters but will remove the flag only whic make the word not found
+            for (int i = 0; i < 128; i++)
+            {
+                if (node->children[i]) // node mustn't have children it only will remove is end of word
+                    return false;
+            }
+            return true;
+        }
+        int index = word[depth];
+        if (removeword(node->children[index], word, depth + 1))
+        {
+            delete node->children[index]; // after each delete the index recursively moves back to prev index
+            node->children[index] = nullptr;
+            if (!node->isEndOfWord)
+            {
+                for (int i = 0; i < 128; i++)
+                    if (node->children[i]) // if node in the middle has branches so we will not  delete
+                        return false;
+                return true;
+            }
+        }
+        return false;
+    }
 
+public:
+    // Public remove function
+    void remove(string word)
+    {
+        removeword(root, word, 0);
+    }
+
+    void findAllWords(TrieNode *node, string currentWord, vector<string> &results) // mohammad
     {
         if (node == nullptr)
-        return;
-
+            return;
         if (node->isEndOfWord)
         {
             results.push_back(currentWord);
@@ -49,7 +92,7 @@ private:
         {
             if (node->children[i] != nullptr)
             {
-                char nextChar = 'a' + i;
+                char nextChar = static_cast<char>(i);
                 findAllWords(node->children[i], currentWord + nextChar, results);
             }
         }
@@ -71,30 +114,44 @@ public:
     // Output: none
     // Purpose: Add a word to the Trie by creating nodes for each character
 
-    void insert(string word)//abdelmaseeh
+    void insert(string word) // abdelmaseeh
 
     {
-      TrieNode* node = root;
-        for (char c : word) {
-            int index = c - 'a'; 
-            if (node->children[index] == nullptr) {
+        TrieNode *node = root;
+        for (char c : word)
+        {
+            int index = c - 'a';
+            if (node->children[index] == nullptr)
+            {
                 node->children[index] = new TrieNode();
             }
             node = node->children[index];
         }
-        node->isEndOfWord = true;   
-     }
+        node->isEndOfWord = true;
+    }
 
     // Search for a word in the Trie
     // Input: word to search for (string)
     // Output: boolean indicating if the word exists
     // Purpose: Check if the complete word exists in the Trie
 
-    bool search(string word)//jana
-
-    {
+    bool search(string word)
+    { // jana
         // TODO: Implement this function
-        return false; // placeholder
+        TrieNode *current = root;
+
+        for (char c : word)
+        {
+            int index = c - 'a';
+
+            if (current->children[index] == nullptr)
+            {
+                return false;
+            }
+
+            current = current->children[index];
+        }
+        return current->isEndOfWord;
     }
 
     // Check if any word starts with the given prefix
@@ -102,15 +159,15 @@ public:
     // Output: boolean indicating if any word has this prefix
     // Purpose: Verify if the prefix exists in the Trie (doesn't need to be a complete word)
 
-    bool startsWith(string prefix)//ahmed
+    bool startsWith(string prefix) // ahmed
 
     {
 
         TrieNode *current = root;
-        for(char node : prefix)
+        for (char node : prefix)
         {
-            int counter = node -'a'; // gives the index of char.
-            if(current->children[counter] == nullptr)
+            int counter = node - 'a'; // gives the index of char.
+            if (current->children[counter] == nullptr)
             {
                 return false;
             }
@@ -118,7 +175,6 @@ public:
             {
                 current = current->children[counter];
             }
-
         }
         // TODO: Implement this function
         return true; // placeholder
@@ -129,7 +185,7 @@ public:
     // Output: vector of strings that start with the prefix
     // Purpose: Find all complete words that begin with the given prefix
 
-    vector<string> autocomplete(string prefix)//fares
+    vector<string> autocomplete(string prefix) // fares
 
     {
         vector<string> suggestions;
@@ -150,6 +206,7 @@ public:
         findAllWords(currentnode, prefix, suggestions); // calling find all words to complete the prefix and insert each found word with isendofword flag at its end in result vector
         return suggestions;
     }
+    // ...existing code...
 };
 
 // Main function
@@ -313,6 +370,55 @@ int main()
         bool found = trie.search(word);
         cout << "Search '" << word << "': " << (found ? "FOUND" : "NOT FOUND") << endl;
     }
+
+    // Test 7: Remove word functionality
+    cout << "\n7. Testing remove word functionality:" << endl;
+    cout << "===============================" << endl;
+
+    // Insert words for removal test
+    vector<string> removeWords = {"test", "testing", "tester", "tested", "toast"};
+    for (const string &word : removeWords)
+    {
+        trie.insert(word);
+        cout << "Inserted: " << word << endl;
+    }
+
+    // Remove some words
+    vector<string> toRemove = {"testing", "tester", "toast"};
+    for (const string &word : toRemove)
+    {
+        trie.remove(word);
+        cout << "Removed: " << word << endl;
+    }
+
+    // Check removed words
+    for (const string &word : toRemove)
+    {
+        bool found = trie.search(word);
+        cout << "Search after remove '" << word << "': " << (found ? "FOUND" : "NOT FOUND") << " (expected: NOT FOUND)" << endl;
+    }
+
+    // Check words that should remain
+    vector<string> shouldRemain = {"test", "tested"};
+    for (const string &word : shouldRemain)
+    {
+        bool found = trie.search(word);
+        cout << "Search after remove (should remain) '" << word << "': " << (found ? "FOUND" : "NOT FOUND") << " (expected: FOUND)" << endl;
+    }
+
+    // Remove a word that is a prefix of another
+    trie.remove("test");
+    cout << "Removed: test" << endl;
+    bool foundTest = trie.search("test");
+    bool foundTested = trie.search("tested");
+    cout << "Search after remove 'test': " << (foundTest ? "FOUND" : "NOT FOUND") << " (expected: NOT FOUND)" << endl;
+    cout << "Search after remove 'tested': " << (foundTested ? "FOUND" : "NOT FOUND") << " (expected: FOUND)" << endl;
+
+    // Remove last remaining word
+    trie.remove("tested");
+    cout << "Removed: tested" << endl;
+    bool foundTested2 = trie.search("tested");
+    cout << "Search after remove 'tested': " << (foundTested2 ? "FOUND" : "NOT FOUND") << " (expected: NOT FOUND)" << endl;
 
     cout << "\n=== ALL TESTS COMPLETED ===" << endl;
 
