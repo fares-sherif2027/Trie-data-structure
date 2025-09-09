@@ -72,7 +72,23 @@ private:
         }
         return false;
     }
+void dfsLongest(const TrieNode* node, string& path, string& best) const {
+    if (!node) return;
 
+    if (node->isEndOfWord) {
+        if (path.size() > best.size() || (path.size() == best.size() && path < best)) {
+            best = path; 
+        }
+    }
+
+    for (int i = 0; i < 128; ++i) {
+        if (node->children[i]) {
+            path.push_back(static_cast<char>(i));
+            dfsLongest(node->children[i], path, best);
+            path.pop_back();
+        }
+    }
+}
 public:
     // Public remove function
     void remove(string word)
@@ -97,7 +113,11 @@ public:
             }
         }
     }
-
+    string longest() const {
+    string path, best;
+    dfsLongest(root, path, best);
+    return best;
+}
 public:
     // Constructor
     // Input: none
