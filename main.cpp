@@ -72,19 +72,19 @@ private:
         }
         return false;
     }
-void dfsLongest(const TrieNode* node, string& path, string& best) const {
-    if (!node) return;
+void dfsLongest(const TrieNode* node, string& path, string& best) const {//looking for the longest word
+    if (!node) return;    //If we reach the end of a word the best happens(its longest)
 
     if (node->isEndOfWord) {
-        if (path.size() > best.size() || (path.size() == best.size() && path < best)) {
-            best = path; 
+        if (path.size() > best.size() || (path.size() == best.size() && path > best)) {
+            best = path; //In the case of equal length we take the smallest linguistically
         }
     }
 
-    for (int i = 0; i < 128; ++i) {
-        if (node->children[i]) {
-            path.push_back(static_cast<char>(i));
-            dfsLongest(node->children[i], path, best);
+    for (int i = 0; i < 128; ++i) { // Traverse all possible children of this node
+        if (node->children[i]) { // If there is a child node at index i (corresponding to some character)
+            path.push_back(static_cast<char>(i));// Add that character to the current path
+            dfsLongest(node->children[i], path, best);// Recurse into the child node to continue building the word
             path.pop_back();
         }
     }
