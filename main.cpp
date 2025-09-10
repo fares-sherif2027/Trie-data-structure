@@ -126,6 +126,32 @@ private:
         }
     }
 
+    // Helper function to count all words in the Trie
+    // Input: current node
+    // Output: integer count of words
+    // Purpose: Recursively count all nodes that mark the end of a word
+    int countWords(TrieNode *node)
+    {
+        if (node == nullptr)
+            return 0;
+        
+        int count = 0;
+        if (node->isEndOfWord)
+        {
+            count = 1;
+        }
+        
+        for (int i = 0; i < 128; i++)
+        {
+            if (node->children[i] != nullptr)
+            {
+                count += countWords(node->children[i]);
+            }
+        }
+        
+        return count;
+    }
+
 public:
     // Constructor
     // Input: none
@@ -251,6 +277,11 @@ public:
         string path, best;
         dfsLongest(root, path, best);
         return best;
+    }
+
+    int count()
+    {
+        return countWords(root);
     }
 
     // ...existing code...
@@ -470,6 +501,75 @@ int main()
     // Test longest function
     cout << "\nTesting longest function after removals:" << endl;
     cout << "Longest word in Trie: " << trie.longest() << endl;
+
+
+
+
+    // Test 8: Count functionality
+    cout << "\n8. Testing count functionality:" << endl;
+    cout << "==============================" << endl;
+
+    // Create a fresh trie for count testing
+    Trie countTrie;
+    cout << "Initial count (empty trie): " << countTrie.count() << " (expected: 0)" << endl;
+
+    // Add some words and test count
+    vector<string> countWords = {"cat", "cats", "dog", "dogs", "rat", "rats"};
+    int expectedCount = 0;
+    for (const string &word : countWords)
+    {
+        countTrie.insert(word);
+        expectedCount++;
+        cout << "After inserting '" << word << "', count: " << countTrie.count() << " (expected: " << expectedCount << ")" << endl;
+    }
+
+    // Test inserting duplicate words (should not increase count)
+    cout << "\nTesting duplicate insertions:" << endl;
+    int currentCount = countTrie.count();
+    countTrie.insert("cat"); // duplicate
+    countTrie.insert("dog"); // duplicate
+    cout << "After inserting duplicates 'cat' and 'dog', count: " << countTrie.count() << " (expected: " << currentCount << ")" << endl;
+
+    // Test removing words and checking count
+    cout << "\nTesting count after removals:" << endl;
+    countTrie.remove("cats");
+    expectedCount--;
+    cout << "After removing 'cats', count: " << countTrie.count() << " (expected: " << expectedCount << ")" << endl;
+
+    countTrie.remove("dogs");
+    expectedCount--;
+    cout << "After removing 'dogs', count: " << countTrie.count() << " (expected: " << expectedCount << ")" << endl;
+
+    // Test removing non-existent word (should not change count)
+    currentCount = countTrie.count();
+    countTrie.remove("elephant"); // doesn't exist
+    cout << "After trying to remove non-existent 'elephant', count: " << countTrie.count() << " (expected: " << currentCount << ")" << endl;
+
+    // Test count with complex prefix relationships
+    cout << "\nTesting count with complex prefix relationships:" << endl;
+    Trie complexTrie;
+    vector<string> complexWords = {"a", "ab", "abc", "abcd", "abcde"};
+    expectedCount = 0;
+    for (const string &word : complexWords)
+    {
+        complexTrie.insert(word);
+        expectedCount++;
+        cout << "After inserting '" << word << "', count: " << complexTrie.count() << " (expected: " << expectedCount << ")" << endl;
+    }
+
+    // Remove middle word and test count
+    complexTrie.remove("abc");
+    expectedCount--;
+    cout << "After removing 'abc', count: " << complexTrie.count() << " (expected: " << expectedCount << ")" << endl;
+
+    // Verify other words still exist
+    vector<string> shouldExist = {"a", "ab", "abcd", "abcde"};
+    for (const string &word : shouldExist)
+    {
+        bool found = complexTrie.search(word);
+        cout << "Verify '" << word << "' still exists: " << (found ? "YES" : "NO") << " (expected: YES)" << endl;
+    }
+
 
     cout << "\n=== ALL TESTS COMPLETED ===" << endl;
 
