@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 using namespace std;
 
 // Each node in the Trie
@@ -8,7 +9,7 @@ class TrieNode
 {
 public:
     // Each node has up to 128 children (for all ASCII)
-    TrieNode *children[26];
+    TrieNode *children[128];
 
     // Marks if this node completes a word
     bool isEndOfWord;
@@ -17,7 +18,7 @@ public:
     TrieNode()
     {
         isEndOfWord = false;
-        for (int i = 0; i < 26; i++)
+        for (int i = 0; i < 128; i++)
         {
             children[i] = nullptr;
         }
@@ -35,6 +36,17 @@ private:
     spell ->jana
     uppercase->jana
     */
+
+    // convert to lowercase
+    string toLowercase(string word)
+    {
+        string result = word;
+        for (char &c : result)
+        {
+            c = tolower(c);
+        }
+        return result;
+    }
 
     // Helper function to find all words from a node
     // Input: current node, current word formed so far, results vector to store words
@@ -72,30 +84,30 @@ private:
         }
         return false;
     }
-void dfsLongest(const TrieNode* node, string& path, string& best) const {//looking for the longest word
-    if (!node) return;    //If we reach the end of a word the best happens(its longest)
 
-    if (node->isEndOfWord) {
-        if (path.size() > best.size() || (path.size() == best.size() && path > best)) {
-            best = path; //In the case of equal length we take the smallest linguistically
+    void dfsLongest(const TrieNode *node, string &path, string &best) const
+    { // looking for the longest word
+        if (!node)
+            return; // If we reach the end of a word the best happens(its longest)
+
+        if (node->isEndOfWord)
+        {
+            if (path.size() > best.size() || (path.size() == best.size() && path > best))
+            {
+                best = path; // In the case of equal length we take the smallest linguistically
+            }
+        }
+
+        for (int i = 0; i < 128; ++i)
+        { // Traverse all possible children of this node
+            if (node->children[i])
+            {                                              // If there is a child node at index i (corresponding to some character)
+                path.push_back(static_cast<char>(i));      // Add that character to the current path
+                dfsLongest(node->children[i], path, best); // Recurse into the child node to continue building the word
+                path.pop_back();
+            }
         }
     }
-
-    for (int i = 0; i < 128; ++i) { // Traverse all possible children of this node
-        if (node->children[i]) { // If there is a child node at index i (corresponding to some character)
-            path.push_back(static_cast<char>(i));// Add that character to the current path
-            dfsLongest(node->children[i], path, best);// Recurse into the child node to continue building the word
-            path.pop_back();
-        }
-    }
-}
-public:
-    // Public remove function
-    void remove(string word)
-    {
-        removeword(root, word, 0);
-    }
-
     void findAllWords(TrieNode *node, string currentWord, vector<string> &results) // mohammad
     {
         if (node == nullptr)
@@ -104,7 +116,7 @@ public:
         {
             results.push_back(currentWord);
         }
-        for (int i = 0; i < 26; i++)
+        for (int i = 0; i < 128; i++)
         {
             if (node->children[i] != nullptr)
             {
@@ -113,12 +125,7 @@ public:
             }
         }
     }
- 
-    string longest() const {
-    string path, best;
-    dfsLongest(root, path, best);
-    return best;
-}
+
 public:
     // Constructor
     // Input: none
@@ -138,10 +145,11 @@ public:
     void insert(string word) // abdelmaseeh
 
     {
+        string lowerWord = toLowercase(word);
         TrieNode *node = root;
-        for (char c : word)
+        for (char c : lowerWord)
         {
-            int index = c - 'a';
+            int index = (int)c;
             if (node->children[index] == nullptr)
             {
                 node->children[index] = new TrieNode();
@@ -159,11 +167,12 @@ public:
     bool search(string word)
     { // jana
         // TODO: Implement this function
+        string lowerWord = toLowercase(word);
         TrieNode *current = root;
 
-        for (char c : word)
+        for (char c : lowerWord)
         {
-            int index = c - 'a';
+            int index = (int)c;
 
             if (current->children[index] == nullptr)
             {
@@ -175,6 +184,11 @@ public:
         return current->isEndOfWord;
     }
 
+    bool checkSpelling(string word)
+    {
+        return search(word);
+    }
+
     // Check if any word starts with the given prefix
     // Input: prefix to check (string)
     // Output: boolean indicating if any word has this prefix
@@ -183,18 +197,18 @@ public:
     bool startsWith(string prefix) // ahmed
 
     {
-
+        string lowerPrefix = toLowercase(prefix);
         TrieNode *current = root;
-        for (char node : prefix)
+        for (char c : lowerPrefix)
         {
-            int counter = node - 'a'; // gives the index of char.
-            if (current->children[counter] == nullptr)
+            int index = (int)c; // gives the index of char.
+            if (current->children[index] == nullptr)
             {
                 return false;
             }
             else
             {
-                current = current->children[counter];
+                current = current->children[index];
             }
         }
         // TODO: Implement this function
@@ -207,26 +221,38 @@ public:
     // Purpose: Find all complete words that begin with the given prefix
 
     vector<string> autocomplete(string prefix) // fares
-
     {
         vector<string> suggestions;
         // TODO: Implement this function
+        string lowerPrefix = toLowercase(prefix);
         TrieNode *currentnode = root;
-        for (char node : prefix)
+        for (char c : lowerPrefix)
         {
-            int i = node - 'a'; // subtracting letter from ascii of a gives integer index
-            if (currentnode->children[i] == nullptr)
+            int index = (int)c; // subtracting letter from ascii of a gives integer index
+            if (currentnode->children[index] == nullptr)
             {
                 return suggestions; // an empty vector
             }
             else
             {
-                currentnode = currentnode->children[i];
+                currentnode = currentnode->children[index];
             }
         }
-        findAllWords(currentnode, prefix, suggestions); // calling find all words to complete the prefix and insert each found word with isendofword flag at its end in result vector
+        findAllWords(currentnode, lowerPrefix, suggestions); // calling find all words to complete the prefix and insert each found word with isendofword flag at its end in result vector
         return suggestions;
     }
+    void remove(string word)
+    {
+        removeword(root, word, 0);
+    }
+
+    string longest() const
+    {
+        string path, best;
+        dfsLongest(root, path, best);
+        return best;
+    }
+
     // ...existing code...
 };
 
@@ -441,8 +467,11 @@ int main()
     bool foundTested2 = trie.search("tested");
     cout << "Search after remove 'tested': " << (foundTested2 ? "FOUND" : "NOT FOUND") << " (expected: NOT FOUND)" << endl;
 
+    // Test longest function
+    cout << "\nTesting longest function after removals:" << endl;
+    cout << "Longest word in Trie: " << trie.longest() << endl;
+
     cout << "\n=== ALL TESTS COMPLETED ===" << endl;
-  Trie t;
-  cout << "longest: " << t.longest() << endl;
+
     return 0;
 }
